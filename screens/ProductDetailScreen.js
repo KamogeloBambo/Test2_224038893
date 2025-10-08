@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, Image, Button, Alert } from "react-native";
 import { db, auth } from "../firebaseConfig";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { ref, get, set } from "firebase/database";
 
 export default function ProductDetailScreen({ route }) {
   const { product } = route.params;
@@ -10,26 +10,26 @@ export default function ProductDetailScreen({ route }) {
   const handleAddToCart = async () => {
     if (!userId) return;
 
-    const cartRef = doc(db, "carts", userId);
+    const cartRef = ref(db, `carts/${userId}`);
     try {
-      const cartSnap = await getDoc(cartRef);
+      const cartSnap = await get(cartRef);
 
       if (cartSnap.exists()) {
-        const cartData = cartSnap.data();
-        const existingItem = cartData.items.find((i) => i.id === product.id);
+        const cartData = cartSnap.val();
+        const existingItem = cartData.find((i) => i.id === product.id);
 
         let updatedItems;
         if (existingItem) {
-          updatedItems = cartData.items.map((i) =>
+          updatedItems = cartData.map((i) =>
             i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i
           );
         } else {
-          updatedItems = [...cartData.items, { ...product, quantity: 1 }];
+          updatedItems = [...cartData, { ...product, quantity: 1 }];
         }
 
-        await updateDoc(cartRef, { items: updatedItems });
+        await set(cartRef, updatedItems);
       } else {
-        await setDoc(cartRef, { items: [{ ...product, quantity: 1 }] });
+        await set(cartRef, [{ ...product, quantity: 1 }]);
       }
 
       Alert.alert("Success", "Product added to cart!");

@@ -8,7 +8,7 @@ DSW02B1 Test 2 - Student: 224038893
 - Product Details View
 - Shopping Cart with real-time sync
 - Offline cart persistence
-- Firebase Firestore integration
+- Firebase Realtime Database integration
 
 ### 1. Install Dependencies
 ```bash

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, FlatList, Image, Button, StyleSheet, TouchableOpacity } from "react-native";
 import { db, auth } from "../firebaseConfig";
-import { doc, getDoc, updateDoc, onSnapshot } from "firebase/firestore";
+import { ref, onValue, set } from "firebase/database";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function CartScreen() {
@@ -35,10 +35,10 @@ export default function CartScreen() {
       return;
     }
 
-    const cartRef = doc(db, "carts", userId);
-    const unsubscribe = onSnapshot(cartRef, 
-      (doc) => {
-        const items = doc.exists() ? doc.data().items || [] : [];
+    const cartRef = ref(db, `carts/${userId}`);
+    const unsubscribe = onValue(cartRef, 
+      (snapshot) => {
+        const items = snapshot.exists() ? snapshot.val() || [] : [];
         setCartItems(items);
         saveToLocal(items);
         setLoading(false);
@@ -56,8 +56,8 @@ export default function CartScreen() {
 
   const updateCart = async (updatedItems) => {
     try {
-      const cartRef = doc(db, "carts", userId);
-      await updateDoc(cartRef, { items: updatedItems });
+      const cartRef = ref(db, `carts/${userId}`);
+      await set(cartRef, updatedItems);
     } catch (error) {
       console.error('Error updating cart:', error);
     }
